@@ -1,0 +1,414 @@
+---
+title: "Project"
+author: "Team 24"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{r load-packages, message = FALSE, include = FALSE}
+library(knitr)
+library(tidyverse)
+library(broom)
+library(htmltools)
+library(scales)
+library(grid)
+library(tinytex)
+library(gridExtra)
+library(knitr)
+library(tidyverse)
+library(broom)
+library(htmltools)
+library(scales)
+library(grid)
+library(tinytex)
+library(gridExtra)
+```
+
+laoding data to a DF
+
+```{r, warning=FALSE}
+data <- read.csv("data.csv")
+```
+
+droping NONE values from the DF that represent missing values.
+ranging from 0 to the highest degree of that feature. 
+```{r warning=FALSE}
+
+data <- data[data$EDUC != -9, ]
+
+data <- data[data$EMPLOY != -9, ]
+
+data <- data[data$LIVARAG != -9, ]
+
+data <- data[data$PRIMINC != -9, ]
+
+data$EDUC <- data$EDUC - 1
+
+data$PRIMINC <- 5 - data$PRIMINC
+
+data$EMPLOY <- 4 - data$EMPLOY
+
+data$LIVARAG <- data$LIVARAG - 1
+
+```
+
+normalizing all the rows within a range of 0-1 and creating a new column
+```{r, warning=FALSE}
+features <- c("EDUC", "EMPLOY", "LIVARAG", "PRIMINC")
+
+for (col in features) {
+  data[[col]] <- (data[[col]] - min(data[[col]], na.rm = TRUE)) / (max(data[[col]], na.rm = TRUE) - min(data[[col]], na.rm = TRUE))
+}
+
+data$SocialScore <- rowSums(data[, c("EDUC", "EMPLOY", "LIVARAG", "PRIMINC")], na.rm = TRUE)
+
+```
+
+making a hisplot of the Social Score to determine the place to split them
+
+```{r, warning=FALSE}
+hist(data$SocialScore, breaks = 25, col = "blue", xlab = "Social Score", ylab = "Frequency", main = "Histogram of Social Score")
+abline(v = 2.5, col = "red")
+```
+
+spliting the DF into tow categories and droping missing values from NOPRIOR category
+
+```{r, warning=FALSE}
+data <- data[data$NOPRIOR != 5 & data$NOPRIOR != -9, ]
+
+social_H <- data[data$SocialScore >= 2.5, ]
+social_L <- data[data$SocialScore < 2.5, ]
+
+```
+
+
+filter high and low to the needed features
+
+```{r, warning=FALSE}
+
+filtered_df_low <- social_L
+filtered_df_low <- select(filtered_df_low, EDUC, EMPLOY , LIVARAG, PRIMINC,SocialScore,SUB1,NOPRIOR)
+```
+
+
+```{r, warning=FALSE}
+filtered_df_high <- social_H
+filtered_df_high <- select(filtered_df_high, EDUC, EMPLOY , LIVARAG, PRIMINC,SocialScore ,SUB1,NOPRIOR)
+```
+
+
+divition
+
+
+alcohol:
+```{r, warning=FALSE}
+
+alcohol_high <- subset(filtered_df_high, SUB1 =="2")
+alcohol_low <- subset(filtered_df_low, SUB1 =="2")
+
+alcohol_nopriorhigh <- alcohol_high$NOPRIOR
+alcohol_nopriorlow <- alcohol_low$NOPRIOR
+t_test_result <- t.test(alcohol_nopriorhigh, alcohol_nopriorlow)
+
+t_test_result
+```
+
+
+Cocaine and crack:
+```{r, warning=FALSE}
+
+Cocaine_crack_high <- subset(filtered_df_high, SUB1 =="3"& NOPRIOR != -9)
+Cocaine_crack_low <- subset(filtered_df_low, SUB1 =="3"& NOPRIOR != -9)
+
+Cocaine_cracknopriorhigh <- Cocaine_crack_high$NOPRIOR
+Cocaine_cracknopriorlow <- Cocaine_crack_low$NOPRIOR
+t_test_result <- t.test(Cocaine_cracknopriorhigh, Cocaine_cracknopriorlow)
+
+t_test_result
+```
+
+
+Marijuana:
+```{r, warning=FALSE}
+Marijuana_high <- subset(filtered_df_high, SUB1 =="4" & NOPRIOR != -9)
+Marijuana_low <- subset(filtered_df_low, SUB1 =="4" & NOPRIOR != -9)
+
+Marijuana_nopriorhigh <- Marijuana_high$NOPRIOR
+Marijuana_nopriorlow <- Marijuana_low$NOPRIOR
+t_test_result <- t.test(Marijuana_nopriorhigh, Marijuana_nopriorlow)
+
+t_test_result
+```
+
+
+Heroin:
+```{r, warning=FALSE}
+Heroin_high <- subset(filtered_df_high, SUB1 =="5" & NOPRIOR != -9)
+Heroin_low <- subset(filtered_df_low, SUB1 =="5" & NOPRIOR != -9)
+
+Heroin_nopriorhigh <- Heroin_high$NOPRIOR
+Heroin_nopriorlow <- Heroin_low$NOPRIOR
+t_test_result <- t.test(Heroin_nopriorhigh, Heroin_nopriorlow)
+
+t_test_result
+
+```
+
+
+opiates:
+```{r, warning=FALSE}
+opiates_high <- subset(filtered_df_high, SUB1 =="7" & NOPRIOR != -9)
+opiates_low <- subset(filtered_df_low, SUB1 =="7" & NOPRIOR != -9)
+
+opiates_nopriorhigh <- opiates_high$NOPRIOR
+opiates_nopriorlow <- opiates_low$NOPRIOR
+t_test_result <- t.test(opiates_nopriorhigh, opiates_nopriorlow)
+
+t_test_result
+
+```
+
+speed:
+```{r, warning=FALSE}
+
+speed_high <- subset(filtered_df_high, SUB1 =="10" & NOPRIOR != -9)
+speed_low <- subset(filtered_df_low, SUB1 =="10" & NOPRIOR != -9)
+
+speed_nopriorhigh <- speed_high$NOPRIOR
+speed_nopriorlow <- speed_low$NOPRIOR
+t_test_result <- t.test(speed_nopriorhigh, speed_nopriorlow)
+
+t_test_result
+
+```
+
+
+Benzodiazepines:
+```{r, warning=FALSE}
+Benzodiazepines_high <- subset(filtered_df_high, SUB1 =="13" & NOPRIOR != -9)
+Benzodiazepines_low <- subset(filtered_df_low, SUB1 =="13" & NOPRIOR != -9)
+
+Benzodiazepines_nopriorhigh <- Benzodiazepines_high$NOPRIOR
+Benzodiazepines_nopriorlow <- Benzodiazepines_low$NOPRIOR
+t_test_result <- t.test(Benzodiazepines_nopriorhigh, Benzodiazepines_nopriorlow)
+
+t_test_result
+numRows3 <- nrow(Benzodiazepines_low)
+print(numRows3)
+
+```
+
+
+
+
+
+
+```{r ,fig.height=4, fig.width = 10}
+# Calculate the mean values for each pair
+mean_values <- c(mean(alcohol_nopriorhigh), mean(alcohol_nopriorlow),
+                 mean(Benzodiazepines_nopriorhigh), mean(Benzodiazepines_nopriorlow),
+                 mean(Cocaine_cracknopriorhigh), mean(Cocaine_cracknopriorlow),
+                 mean(Heroin_nopriorhigh), mean(Heroin_nopriorlow),
+                 mean(Marijuana_nopriorhigh), mean(Marijuana_nopriorlow),
+                 mean(opiates_nopriorhigh), mean(opiates_nopriorlow),
+                 mean(speed_nopriorhigh), mean(speed_nopriorlow))
+
+# Create a bar plot
+colors <- c("brown3", "brown3", "orange1", "orange1", "yellow", "yellow", "forestgreen", "forestgreen", "darkturquoise", "darkturquoise", "mediumblue", "mediumblue", "mediumorchid", "mediumorchid")
+y_min <- 0   # Minimum value
+y_max <- 2  # Maximum value
+
+# Set graphical parameter xpd to TRUE
+par(xpd = TRUE)
+
+# Create the bar plot
+bp <- barplot(mean_values, beside = TRUE,
+        xlab = "", ylab = "Mean Value",
+        main = "Comparison of Mean Values", col = colors, ylim = c(y_min, y_max))
+
+# Rotate x-axis labels by 45 degrees using text() function
+text(bp, par("usr")[3] - 0.1, srt = 45, adj = 1, xpd = TRUE,
+     labels = c("alcohol_high","alcohol_low", "Benzo_high","Benzo_low" , "Cocaine_high", "Cocaine_low" , "Heroin_high","Heroin_low", "Marijuana_high", "Marijuana_low", "opiates_high","opiates_low" ,"speed_high" , "speed_low"))
+
+
+```
+
+
+
+-------------------------------------------------------
+# Read the drugs data from a CSV file into a data frame
+```{r}
+drugs = read.csv("data.csv", header = TRUE, sep = ",", dec = ".",)
+drugs
+```
+# Filter out rows with missing values for specific columns
+```{r}
+drugs_data <- drugs[drugs$NOPRIOR != -9, ]
+drugs_data <- drugs_data[drugs_data$EDUC != -9, ]
+drugs_data <- drugs_data[drugs_data$PRIMINC != -9, ]
+drugs_data <- drugs_data[drugs_data$LIVARAG != -9, ]
+drugs_data <- drugs_data[drugs_data$EMPLOY != -9, ]
+drugs_data <- drugs_data[drugs_data$SUB1 != -9, ]
+
+drugs_data
+```
+# Convert values 1, 2, 3, 4, 5 to 1 in the NOPRIOR column
+```{r, eval=FALSE}
+drugs_data_binary <- drugs_data
+drugs_data_binary$NOPRIOR <- ifelse(drugs_data_binary$NOPRIOR %in% c(1, 2, 3, 4, 5), 1, drugs_data_binary$NOPRIOR)
+```
+
+
+# Convert selected columns to factor variables
+```{r, eval=FALSE}
+drugs_data_binary <- drugs_data_binary %>%
+  mutate(
+    PRIMINC = factor(PRIMINC),
+    EMPLOY = factor(EMPLOY),
+    DETNLF = factor(LIVARAG),
+    SUB1 = factor(SUB1),
+    NOPRIOR = factor(NOPRIOR),
+  )
+```
+# Split to train and test
+```{r split, , eval=FALSE}
+set.seed(1122)
+drugs_split <- initial_split(drugs_data_binary)
+drugs_train <- training(drugs_split)
+drugs_test <- testing(drugs_split)
+```
+
+# The recipe
+```{r}
+drugs_rec <- recipe(NOPRIOR ~ EDUC + PRIMINC + LIVARAG + EMPLOY + SUB1, data = drugs_data_binary) %>%
+  step_dummy(all_nominal(), -all_outcomes(), -c(EDUC)) %>%
+  step_integer(EDUC) %>%
+  step_zv(all_predictors())
+
+```
+
+# The model - logistic reggression
+```{r}
+drugs_mod <- logistic_reg() %>% 
+  set_engine("glm")
+
+```
+
+# Workflow
+```{r}
+drugs_wflow <- workflow() %>% 
+  add_model(drugs_mod) %>% 
+  add_recipe(drugs_rec)
+
+```
+
+# Fitting the model
+```{r}
+drugs_fit <- fit(drugs_wflow, data = drugs_train)
+```
+```{r}
+drugs_fit
+```
+# Extracting model coefficients
+```{r}
+tidy(drugs_fit) %>% print(n = 100)
+```
+
+# Making predictions
+```{r}
+drugs_pred <- predict(drugs_fit, drugs_test, type = "prob") %>% 
+  bind_cols(drugs_test)
+drugs_pred
+```
+
+# Performance evaluation and confusion matrix
+```{r}
+cutoff_prob <- 0.65
+confusion_matrix <- drugs_pred %>%
+  mutate(
+    NOPRIOR      = if_else(NOPRIOR == 1, "1", "0"),
+    NOPRIOR_pred = if_else(.pred_1 > cutoff_prob, "PRED 1", "PRED 0")
+    ) %>%
+  count(NOPRIOR_pred, NOPRIOR) %>%
+  pivot_wider(names_from = NOPRIOR, values_from = n)
+
+confusion_matrix
+```
+
+```{r}
+TP <- confusion_matrix[2, "1"]  # True Positive
+FP <- confusion_matrix[2, "0"]  # False Positive
+FN <- confusion_matrix[1, "1"]  # False Negative
+
+precision <- TP / (TP + FP)
+recall <- TP / (TP + FN)
+f1_score <- 2 * (precision * recall) / (precision + recall)
+
+precision <- pull(precision, 1)
+recall <- pull(recall, 1)
+f1_score <- pull(f1_score, 1)
+
+cat("The precision is", precision, "\n")
+cat("The recall is", recall, "\n")
+cat("The F1 Score is", f1_score, "\n")
+```
+# ROC analysis
+```{r}
+drugs_pred %>%
+  roc_auc(
+    truth = NOPRIOR,
+    .pred_1,
+    event_level = "second"
+  ) 
+```
+
+```{r}
+drugs_pred %>%
+  roc_curve(
+    truth = NOPRIOR,
+    .pred_1,
+    event_level = "second"
+  ) %>%
+  autoplot()
+```
+
+
+
+#  Bar plots to visualize the distribution of NOPRIOR with other variables (EMPLOY, LIVARAG, and SUB1)
+
+```{r}
+ggplot(drugs_data, aes(x = EMPLOY, fill = factor(NOPRIOR))) +
+  geom_bar(position = "fill") +
+  labs(x = "EMPLOY", y = "Proportion", fill = "NOPRIOR") +
+  ggtitle("Bar Plot: Distribution of NOPRIOR by EMPLOY")
+```
+```{r}
+ggplot(drugs_data, aes(x = LIVARAG, fill = factor(NOPRIOR))) +
+  geom_bar(position = "fill") +
+  labs(x = "LIVARAG", y = "Proportion", fill = "NOPRIOR") +
+  ggtitle("Bar Plot: Distribution of NOPRIOR by LIVARAG")
+```
+
+
+```{r}
+ggplot(drugs_data, aes(x = SUB1, fill = factor(NOPRIOR))) +
+  geom_bar(position = "fill") +
+  labs(x = "SUB1", y = "Proportion", fill = "NOPRIOR") +
+  ggtitle("Bar Plot: Distribution of NOPRIOR by SUB1")
+```
+
+
+
+### Data README
+
+```{r include_data_readme, comment=''}
+cat(readLines('../data/README.md'), sep = '\n')
+```
+
+### Source code
+
+```{r, ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+
+```
